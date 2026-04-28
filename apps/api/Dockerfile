@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 RUN corepack enable pnpm
 
@@ -8,7 +8,7 @@ COPY apps/api ./apps/api
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @otel-monorepo/api build
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 RUN corepack enable pnpm
 ENV NODE_ENV=production
