@@ -38,3 +38,6 @@ docker-compose.override.yml
 
 # Claude
 CLAUDE.md
+
+# Go Executable
+/scripts/stress/stress
