@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./otel/otel-collector.yaml:/etc/otel-collector.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    networks:
+      - observability
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" # Jaeger UI
+    networks:
+      - observability
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./otel/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090" # Prometheus UI
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ./otel/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./otel/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./otel/grafana/dashboards:/etc/grafana/provisioning/dashboards/json
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    ports:
+      - "3001:3000" # Grafana UI (3001 instead of 3000)
+    networks:
+      - observability
+
+networks:
+  observability:
+    driver: bridge
