@@ -6,6 +6,17 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [2ms, 4ms, 6ms, 8ms, 10ms, 50ms, 100ms, 200ms, 400ms, 800ms, 1s, 2s, 5s, 10s]
+    dimensions:
+      - name: http.method
+      - name: http.route
+      - name: http.status_code
+    metrics_flush_interval: 15s
+
 processors:
   batch:
   memory_limiter:
@@ -14,10 +25,10 @@ processors:
     spike_limit_mib: 200
 
 exporters:
-  logging:
+  debug:
     verbosity: detailed
-  jaeger:
-    endpoint: "jaeger:14250"
+  otlp/jaeger:
+    endpoint: "jaeger:4317"
     tls:
       insecure: true
   prometheus:
@@ -28,8 +39,8 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [logging, jaeger]
+      exporters: [debug, otlp/jaeger, spanmetrics]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, spanmetrics]
       processors: [memory_limiter, batch]
-      exporters: [logging, prometheus]
+      exporters: [debug, prometheus]
