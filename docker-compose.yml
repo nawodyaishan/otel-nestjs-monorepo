@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -41,6 +39,29 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     ports:
       - "3001:3000" # Grafana UI (3001 instead of 3000)
+    networks:
+      - observability
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - observability
+    depends_on:
+      - otel-collector
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:80"
     networks:
       - observability
 
